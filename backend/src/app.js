@@ -5,7 +5,14 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : '*';
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 // Capture raw body for webhook verification
 app.use(express.json({
