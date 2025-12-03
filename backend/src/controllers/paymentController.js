@@ -138,6 +138,7 @@ exports.verifyPayment = async (req, res) => {
 
     // Verify signature
     const isValid = verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+    console.log(`[VerifyPayment] PaymentId: ${paymentId}, OrderId: ${razorpay_order_id}, Valid: ${isValid}`);
 
     if (isValid) {
       // User wants to show as NOT_VERIFIED until webhook confirms it
@@ -169,6 +170,7 @@ exports.verifyPayment = async (req, res) => {
 
 // 6) POST /api/payments/webhook
 exports.handleWebhook = async (req, res) => {
+  console.log('[Webhook] Received webhook event');
   // Webhook signature verification is critical
   const signature = req.headers['x-razorpay-signature'];
 
@@ -177,7 +179,8 @@ exports.handleWebhook = async (req, res) => {
   const rawBody = req.rawBody;
 
   if (!verifyWebhookSignatureRaw(rawBody, signature)) {
-    console.error('Invalid webhook signature');
+    console.error('[Webhook] Invalid webhook signature');
+    console.error('[Webhook] Signature received:', signature);
     // We should probably log this attempt to a global log or find the payment if possible
     // But if we can't trust the payload, we can't trust the order_id inside it.
     // Spec says: "If invalid signature -> log attempt, set status = FAILED or mark event as INVALID_SIGNATURE"
@@ -186,6 +189,7 @@ exports.handleWebhook = async (req, res) => {
   }
 
   const event = req.body;
+  console.log(`[Webhook] Event: ${event.event}, ID: ${event.id}`);
 
   try {
     // Match razorpay_order_id
@@ -200,9 +204,10 @@ exports.handleWebhook = async (req, res) => {
     const payment = await Payment.findOne({ razorpay_order_id: orderId });
 
     if (!payment) {
-      console.warn(`Payment not found for orderId: ${orderId} `);
+      console.warn(`[Webhook] Payment not found for orderId: ${orderId}`);
       return res.json({ status: 'ignored_not_found' });
     }
+    console.log(`[Webhook] Found payment: ${payment.paymentId} (Current Status: ${payment.status})`);
 
     // Idempotency: check if this event id is already logged
     const eventId = event.id || event['x-request-id']; // Razorpay sends 'id' in body
@@ -229,6 +234,7 @@ exports.handleWebhook = async (req, res) => {
           timestamp: new Date(),
           details: 'Webhook payment.captured received and verified'
         });
+        console.log(`[Webhook] Payment ${payment.paymentId} marked as VERIFIED`);
       }
     } else if (event.event === 'payment.failed') {
       if (payment.status !== 'VERIFIED') {
@@ -238,6 +244,7 @@ exports.handleWebhook = async (req, res) => {
           timestamp: new Date(),
           details: 'Webhook payment.failed received'
         });
+        console.log(`[Webhook] Payment ${payment.paymentId} marked as FAILED`);
       }
     }
 
