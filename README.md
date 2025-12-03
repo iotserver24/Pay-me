@@ -63,6 +63,19 @@ See the [Hosting Guide](docs/HOSTING.md) for detailed manual setup instructions 
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## 🗺️ Future Roadmap
+
+We are actively working on expanding PayMe to support multiple payment platforms to give you more flexibility:
+
+* **Cashfree**
+* **Polar.sh**
+* **Stripe**
+* **PayPal**
+* **Lemon Squeezy**
+* **Paddle**
+* **PhonePe**
+* **Paytm**
+
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License** with additional terms regarding donation links. See the [LICENSE](LICENSE) file for details.
