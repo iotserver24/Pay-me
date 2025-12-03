@@ -22,7 +22,7 @@ Create a new payment link.
   "currency": "INR",          // Currency code
   "description": "Order #123",// Description of the payment
   "userId": "user_001",       // Optional: Your system's user ID
-  "returnUrl": "https://...", // Optional: Redirect URL after success
+  "returnUrl": "https://...", // Optional: Redirect URL after success. The system will append ?id={paymentId} to this URL.
   "adminNotes": "VIP Client"  // Optional: Internal notes visible only to admins
 }
 ```

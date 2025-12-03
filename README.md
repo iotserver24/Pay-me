@@ -1,93 +1,68 @@
-# Payment Microservice Wrapper
+# PayMe - Open Source Payment Gateway Wrapper
 
-A complete payment microservice + frontend for a custom Razorpay-based payment gateway wrapper.
+PayMe is a robust, open-source payment microservice wrapper built with **Next.js**, **Node.js**, and **MongoDB**. It simplifies integrating **Razorpay** into your applications by providing a ready-to-use Payment Page, Admin Dashboard, and secure Backend API.
 
-## Architecture
+![PayMe Banner](https://via.placeholder.com/1200x400?text=PayMe+Open+Source+Payment+Gateway)
 
-- **Backend**: Node.js + Express + Mongoose (Port 3000)
-- **Frontend**: Next.js (React) + Tailwind CSS (Port 3001)
-- **Database**: MongoDB (Port 27017)
-- **Management**: Mongo Express (Port 8081)
+## 🚀 Features
 
-## Prerequisites
+* **Secure Payment Processing**: Integrated with Razorpay for seamless transactions.
+* **Admin Dashboard**: View transaction history, verify payments, and manage status.
+* **Dynamic Payment Pages**: Beautiful, responsive payment pages (`/pay/:id`).
+* **Webhook Support**: Automatically updates payment status (Verified/Failed) via Razorpay Webhooks.
+* **API Proxy**: Frontend proxies public API requests to the backend for easier integration.
+* **Direct Admin Access**: Secure, direct connection to backend for Admin operations.
+* **Docker Ready**: One-command setup with Docker Compose.
 
-- Docker & Docker Compose
-- Razorpay Account (Test Mode)
+## 🏗 Architecture
 
-## Setup & Run
+* **Frontend**: Next.js 14 (React) + Tailwind CSS
+* **Backend**: Node.js + Express + Mongoose
+* **Database**: MongoDB
+* **Gateway**: Razorpay
 
-1. **Clone the repository** (if not already done).
-2. **Environment Variables**:
-   Copy `example.env` to `.env` in the root directory and fill in your details.
+## 📚 Documentation
 
-   ```bash
-   cp example.env .env
-   ```
+We have detailed guides to help you get started:
 
-   Edit `.env`:
-   - `RAZORPAY_KEY_ID`: Get from Razorpay Dashboard
-   - `RAZORPAY_KEY_SECRET`: Get from Razorpay Dashboard
-   - `ADMIN_EMAIL`: Your desired admin email
-   - `ADMIN_PASSWORD`: Your desired admin password
-   - `JWT_SECRET`: Random string
+* **[Hosting & Deployment Guide](docs/HOSTING.md)**: Complete guide to deploying on Vercel, Render, VPS, and setting up Webhooks.
+* **[API Documentation](docs/API.md)**: Full list of API endpoints and usage examples.
 
-3. **Run with Docker Compose**:
+## ⚡ Quick Start (Local Development)
 
-   ```bash
-   docker compose up --build
-   ```
+### Option 1: Docker (Recommended)
 
-4. **Access the Application**:
-   - Frontend (Pay & Admin): [http://localhost:3001](http://localhost:3001)
-   - Backend API: [http://localhost:3000](http://localhost:3000)
-   - Mongo Express: [http://localhost:8081](http://localhost:8081)
+1. **Clone the repo**:
 
-## Manual Run (without Docker)
+    ```bash
+    git clone https://github.com/yourusername/pay-me.git
+    cd pay-me
+    ```
 
-**Backend**:
+2. **Configure Environment**:
+    Copy `example.env` to `.env` and fill in your Razorpay credentials.
 
-1. `cd backend`
-2. `cp example.env .env` (Update values, ensure MONGO_URI points to localhost if running local mongo)
-3. `npm install`
-4. `npm start`
+    ```bash
+    cp example.env .env
+    ```
 
-**Frontend**:
+3. **Run**:
 
-1. `cd frontend`
-2. `cp example.env .env.local`
-3. `npm install`
-4. `npm run dev`
+    ```bash
+    docker compose up --build
+    ```
 
-## API Documentation
+    * Frontend: [http://localhost:3001](http://localhost:3001)
+    * Backend: [http://localhost:3000](http://localhost:3000)
 
-**All API requests should be routed through the Frontend Proxy for security and simplicity.**
+### Option 2: Manual Setup
 
-👉 **[View Full API Documentation](docs/API.md)**
+See the [Hosting Guide](docs/HOSTING.md) for detailed manual setup instructions for both Backend and Frontend.
 
-### Quick Example: Create Payment via Frontend Proxy
+## 🤝 Contributing
 
-```bash
-curl -X POST http://localhost:3001/api/payments/create \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": 50000,
-    "currency": "INR",
-    "description": "Test Payment",
-    "adminNotes": "Created via API Proxy"
-  }'
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-**Response:**
+## 📄 License
 
-```json
-{ "id": "A1b2C3d4E5f6G7" }
-```
-
-### Webhook Setup
-
-1. Go to Razorpay Dashboard > Settings > Webhooks.
-2. Add New Webhook.
-3. Webhook URL: `YOUR_PUBLIC_DOMAIN/api/payments/webhook` (Note: Webhooks usually go directly to backend, but can go through proxy if configured, or direct to backend port 3000 if exposed).
-   - *Recommendation*: For production, expose the backend directly for webhooks or ensure the proxy handles the traffic correctly.
-4. Secret: Same as `RAZORPAY_KEY_SECRET` in `.env`.
-5. Active Events: `payment.captured`, `payment.failed`.
+This project is open source and available under the [MIT License](LICENSE).

@@ -99,7 +99,9 @@ const PaymentPage = () => {
             setStatusMessage('Payment submitted successfully! Waiting for final confirmation.');
             setProcessing(false);
             if (payment.returnUrl) {
-              setTimeout(() => window.location.href = payment.returnUrl, 3000);
+              const separator = payment.returnUrl.includes('?') ? '&' : '?';
+              const redirectUrl = `${payment.returnUrl}${separator}id=${payment.paymentId}`;
+              setTimeout(() => window.location.href = redirectUrl, 3000);
             }
           } else if (verifyRes.data.status === 'VERIFIED') {
             setPayment(prev => ({ ...prev, status: 'VERIFIED' }));
@@ -107,7 +109,9 @@ const PaymentPage = () => {
             setStatusMessage('Payment Successful!');
             setProcessing(false);
             if (payment.returnUrl) {
-              setTimeout(() => window.location.href = payment.returnUrl, 3000);
+              const separator = payment.returnUrl.includes('?') ? '&' : '?';
+              const redirectUrl = `${payment.returnUrl}${separator}id=${payment.paymentId}`;
+              setTimeout(() => window.location.href = redirectUrl, 3000);
             }
           } else {
             setProcessing(false);
