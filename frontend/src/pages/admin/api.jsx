@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
 const ApiDocs = () => {
-    const [baseUrl, setBaseUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL);
+    const [baseUrl, setBaseUrl] = useState('');
 
-    // useEffect(() => {
-    //     if (typeof window !== 'undefined') {
-    //         setBaseUrl(`${window.location.protocol}//${window.location.host}`);
-    //     }
-    // }, []);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setBaseUrl(window.location.origin);
+        }
+    }, []);
 
     const endpoints = [
         {
