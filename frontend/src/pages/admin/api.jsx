@@ -15,11 +15,13 @@ const ApiDocs = () => {
             title: 'Create Payment',
             method: 'POST',
             url: `${baseUrl}/api/payments/create`,
-            desc: 'Create a new payment link.',
+            desc: 'Create a new payment link. On success, redirects to returnUrl?id={paymentId}',
             body: {
                 amount: 1000,
                 currency: 'INR',
                 description: 'Order #123',
+                userId: 'user_001',
+                returnUrl: 'https://your-site.com/success',
                 adminNotes: 'VIP Client'
             },
             response: { id: 'A1b2C3d4E5f6G7' }

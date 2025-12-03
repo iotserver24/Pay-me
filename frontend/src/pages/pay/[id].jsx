@@ -196,7 +196,7 @@ const PaymentPage = () => {
       {/* Custom Modal */}
       {statusMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setStatusMessage(null)}></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => statusType !== 'success' && setStatusMessage(null)}></div>
           <div className="bg-dark-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-2xl animate-slide-up">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto ${statusType === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
               }`}>
@@ -212,12 +212,19 @@ const PaymentPage = () => {
             <p className="text-gray-400 text-center mb-6">
               {statusMessage}
             </p>
-            <button
-              onClick={() => setStatusMessage(null)}
-              className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl transition"
-            >
-              Close
-            </button>
+            {statusType === 'success' ? (
+              <div className="w-full flex justify-center py-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                <span className="ml-3 text-gray-300">Redirecting...</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => setStatusMessage(null)}
+                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl transition"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       )}

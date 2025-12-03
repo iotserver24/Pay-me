@@ -8,6 +8,7 @@ const getPublicPaymentData = (payment) => {
     createdAt: payment.createdAt,
     expiresAt: payment.expiresAt,
     razorpay_order_id: payment.razorpay_order_id, // Needed for frontend checkout
+    returnUrl: payment.returnUrl,
   };
 };
 
