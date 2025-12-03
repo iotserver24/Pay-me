@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
 const ApiDocs = () => {
-    const [baseUrl, setBaseUrl] = useState('');
+    const [baseUrl, setBaseUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setBaseUrl(`${window.location.protocol}//${window.location.host}`);
-        }
-    }, []);
+    // useEffect(() => {
+    //     if (typeof window !== 'undefined') {
+    //         setBaseUrl(`${window.location.protocol}//${window.location.host}`);
+    //     }
+    // }, []);
 
     const endpoints = [
         {
@@ -67,7 +67,7 @@ const ApiDocs = () => {
                             <div key={idx} className="bg-dark-800/50 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl">
                                 <div className="flex items-center gap-4 mb-4">
                                     <span className={`px-3 py-1 rounded-lg text-sm font-bold ${ep.method === 'POST' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' :
-                                            'bg-green-500/20 text-green-400 border border-green-500/50'
+                                        'bg-green-500/20 text-green-400 border border-green-500/50'
                                         }`}>
                                         {ep.method}
                                     </span>
