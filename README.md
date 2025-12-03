@@ -35,7 +35,7 @@ We have detailed guides to help you get started:
 1. **Clone the repo**:
 
     ```bash
-    git clone https://github.com/yourusername/pay-me.git
+    git clone https://github.com/iotserver24/pay-me.git
     cd pay-me
     ```
 
