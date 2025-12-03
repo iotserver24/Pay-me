@@ -51,6 +51,15 @@ const paymentSchema = new mongoose.Schema({
   userId: {
     type: String
   },
+  customerName: {
+    type: String
+  },
+  customerEmail: {
+    type: String
+  },
+  customerPhone: {
+    type: String
+  },
   ipAddress: {
     type: String
   },

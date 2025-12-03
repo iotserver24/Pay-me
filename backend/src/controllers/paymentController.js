@@ -1,13 +1,54 @@
 const Payment = require('../models/Payment');
+const ApiKey = require('../models/ApiKey');
+const crypto = require('crypto');
 const { createOrder, verifySignature, verifyWebhookSignatureRaw } = require('../utils/razorpay');
 const { getPublicPaymentData } = require('../utils/responseFilters');
+const { verifyToken } = require('../utils/jwt');
 const { customAlphabet } = require('nanoid');
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 14);
 
 // 1) POST /api/payments/create
 exports.createPayment = async (req, res) => {
   try {
-    const { amount, currency, description, userId, returnUrl, adminNotes } = req.body;
+    const { amount, currency, description, userId, returnUrl, adminNotes, customerName, customerEmail, customerPhone } = req.body;
+
+    // Auth Flag
+    let isAuthenticated = false;
+
+    // 1. API Key Verification
+    const apiKeyHeader = req.headers['x-api-key'];
+    if (apiKeyHeader) {
+      const hashedKey = crypto.createHash('sha256').update(apiKeyHeader).digest('hex');
+      const apiKeyDoc = await ApiKey.findOne({ key: hashedKey });
+
+      if (apiKeyDoc) {
+        apiKeyDoc.usageCount += 1;
+        apiKeyDoc.lastUsed = new Date();
+        await apiKeyDoc.save();
+        isAuthenticated = true;
+      }
+    }
+
+    // 2. Admin Token Verification (if not already authenticated via API Key)
+    if (!isAuthenticated) {
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        try {
+          const decoded = verifyToken(token);
+          if (decoded && decoded.role === 'admin') {
+            isAuthenticated = true;
+          }
+        } catch (e) {
+          // Token invalid, ignore and stay unauthenticated
+        }
+      }
+    }
+
+    // Enforce Authentication
+    if (!isAuthenticated) {
+      return res.status(401).json({ error: 'Unauthorized: Valid API Key or Admin Token required' });
+    }
 
     if (!amount || !currency || !expiresAtValid(amount)) {
       // simple validation
@@ -32,6 +73,11 @@ exports.createPayment = async (req, res) => {
       returnUrl,
       userId,
       adminNotes,
+      userId,
+      adminNotes,
+      customerName,
+      customerEmail,
+      customerPhone,
       ipAddress: req.ip,
       verificationHistory: [{
         action: 'CREATED',
@@ -45,6 +91,12 @@ exports.createPayment = async (req, res) => {
     res.json({ id: paymentId });
   } catch (error) {
     console.error('Create payment error:', error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        error: error.error?.description || error.message || 'Payment creation failed',
+        details: error.error
+      });
+    }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

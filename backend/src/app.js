@@ -23,6 +23,16 @@ app.use(express.json({
 
 app.use(express.urlencoded({ extended: true }));
 
+// Rate Limiting
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 

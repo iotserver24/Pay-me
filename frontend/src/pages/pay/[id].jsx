@@ -54,38 +54,9 @@ const PaymentPage = () => {
       currency: payment.currency,
       name: 'Pay Me',
       description: payment.description,
-      order_id: payment.razorpay_order_id, // We need this from backend! 
-      // WAIT: The getPayment endpoint only returns public fields. 
-      // The prompt says: "GET /api/payments/:paymentId - Returns ONLY public fields"
-      // BUT "Create Razorpay order ... Save full document"
-      // AND "Pay button triggers Razorpay Checkout with order details"
-      // The frontend needs the razorpay_order_id to verify the signature properly (or at least link it).
-      // If I look at the prompt again:
-      // "PUBLIC (returned to client /pay/:id): ... (no razorpay_order_id listed explicitly)"
-      // BUT usually you need the order_id for checkout.
-      // Let's check `responseFilters.js` I wrote. It does NOT include `razorpay_order_id`.
-      // The prompt is slightly contradictory or implies I should expose it if needed.
-      // "Public fields: ... paymentId, amount, currency, description, status..."
-      // "PRIVATE (admin-only): razorpay_order_id..."
-
-      // However, Razorpay Standard Checkout docs say:
-      // "Pass the order_id that you received in the response of the Orders API."
-
-      // So I MUST expose `razorpay_order_id` to the frontend for the payment to work.
-      // I will update `responseFilters.js` to include `razorpay_order_id` or just pass it here.
-      // The prompt lists `razorpay_order_id` under PRIVATE. This is tricky.
-      // Maybe I should fetch it via a separate call? No, that's overengineering.
-      // I will assume `razorpay_order_id` is safe to expose to the payer (it's just an ID).
-      // I'll update the `responseFilters.js` in a moment.
-
-      // Continuing with the code assuming I'll fix the backend.
+      order_id: payment.razorpay_order_id,
       handler: async function (response) {
-        // response.razorpay_payment_id
-        // response.razorpay_order_id
-        // response.razorpay_signature
-
         try {
-          // Call backend to verify signature immediately
           const verifyRes = await api.post('/api/payments/verify', {
             paymentId: payment.paymentId,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -133,7 +104,7 @@ const PaymentPage = () => {
         address: 'Razorpay Corporate Office'
       },
       theme: {
-        color: '#0ea5e9' // Primary-500 color
+        color: '#0ea5e9'
       },
       modal: {
         ondismiss: function () {
@@ -152,75 +123,85 @@ const PaymentPage = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-dark-900">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl text-center max-w-md">
-        <p className="font-bold mb-2">Error</p>
-        <p>{error}</p>
+    <div className="min-h-screen flex items-center justify-center bg-dark-900">
+      <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-8 py-6 rounded-2xl text-center max-w-md shadow-2xl backdrop-blur-sm">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <p className="font-bold text-xl mb-2">Unable to Load Payment</p>
+        <p className="text-sm opacity-80">{error}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-dark-900 selection:bg-primary-500/30">
       <Head>
         <title>Pay - {payment ? payment.description : '...'}</title>
       </Head>
 
+      {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-500/20 blur-[120px]" />
-        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-[100px]" />
+        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-primary-500/10 blur-[120px] animate-pulse-slow" />
+        <div className="absolute top-[40%] -right-[10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[100px] animate-pulse-slow delay-1000" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-t from-dark-900 to-transparent" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-500">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 shadow-lg shadow-primary-500/20 mb-6">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          </div>
+          <h1 className="text-4xl font-bold text-white tracking-tight mb-2">
             PayMe
           </h1>
-          <p className="text-gray-400 text-sm mt-2">Secure Payment Gateway</p>
+          <p className="text-gray-400">Secure Payment Gateway</p>
         </div>
-        <PaymentCard payment={payment} onPay={handlePay} loading={processing} />
 
-        <div className="mt-8 text-center">
-          <p className="text-gray-500 text-xs">
-            Secured by Razorpay. Your data is encrypted.
-          </p>
+        <div className="transform transition-all duration-300 hover:scale-[1.02]">
+          <PaymentCard payment={payment} onPay={handlePay} loading={processing} />
+        </div>
+
+        <div className="mt-8 text-center flex items-center justify-center gap-2 text-gray-500 text-xs">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          <span>Secured by Razorpay. 256-bit SSL Encrypted.</span>
         </div>
       </div>
 
-      {/* Custom Modal */}
+      {/* Status Modal */}
       {statusMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => statusType !== 'success' && setStatusMessage(null)}></div>
-          <div className="bg-dark-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-2xl animate-slide-up">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto ${statusType === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300" onClick={() => statusType !== 'success' && setStatusMessage(null)}></div>
+          <div className="bg-dark-800 border border-white/10 rounded-3xl p-8 max-w-sm w-full relative z-10 shadow-2xl animate-scale-in">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto ${statusType === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
               }`}>
               {statusType === 'success' ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
               )}
             </div>
-            <h3 className="text-xl font-bold text-white text-center mb-2">
-              {statusType === 'success' ? 'Success' : 'Error'}
+            <h3 className="text-2xl font-bold text-white text-center mb-3">
+              {statusType === 'success' ? 'Payment Successful!' : 'Payment Failed'}
             </h3>
-            <p className="text-gray-400 text-center mb-6">
+            <p className="text-gray-400 text-center mb-8 leading-relaxed">
               {statusMessage}
             </p>
             {statusType === 'success' ? (
-              <div className="w-full flex justify-center py-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                <span className="ml-3 text-gray-300">Redirecting...</span>
+              <div className="w-full flex flex-col items-center justify-center py-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-3"></div>
+                <span className="text-sm text-gray-400">Redirecting to merchant...</span>
               </div>
             ) : (
               <button
                 onClick={() => setStatusMessage(null)}
-                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl transition"
+                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-4 px-6 rounded-xl transition duration-200"
               >
                 Close
               </button>

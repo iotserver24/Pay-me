@@ -3,7 +3,7 @@
 This document outlines the API endpoints available via the **Frontend Proxy**.
 For security and simplicity, all client-side requests should be made to the Frontend URL (`http://localhost:3001` or your production domain), which proxies them to the backend.
 
-**Base URL**: `http://localhost:3001/api`
+**Base URL**: `http://localhost:3001/api` (Frontend Proxy) or `http://localhost:3000/api` (Direct Backend)
 
 ---
 
@@ -13,7 +13,9 @@ Create a new payment link.
 
 - **Endpoint**: `POST /api/payments/create`
 - **URL**: `http://localhost:3001/api/payments/create`
-- **Headers**: `Content-Type: application/json`
+- **Headers**:
+  - `Content-Type: application/json`
+  - `x-api-key: YOUR_API_KEY` (Required)
 - **Body**:
 
 ```json
