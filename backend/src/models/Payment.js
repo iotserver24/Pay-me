@@ -65,6 +65,10 @@ const paymentSchema = new mongoose.Schema({
   internalNotes: {
     type: [String],
     default: []
+  },
+  adminNotes: {
+    type: String,
+    default: ''
   }
 });
 

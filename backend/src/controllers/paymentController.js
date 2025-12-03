@@ -1,19 +1,20 @@
 const Payment = require('../models/Payment');
 const { createOrder, verifySignature, verifyWebhookSignatureRaw } = require('../utils/razorpay');
 const { getPublicPaymentData } = require('../utils/responseFilters');
-const { nanoid } = require('nanoid');
+const { customAlphabet } = require('nanoid');
+const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 14);
 
 // 1) POST /api/payments/create
 exports.createPayment = async (req, res) => {
   try {
-    const { amount, currency, description, userId, returnUrl } = req.body;
+    const { amount, currency, description, userId, returnUrl, adminNotes } = req.body;
 
     if (!amount || !currency || !expiresAtValid(amount)) {
-       // simple validation
+      // simple validation
     }
 
     // Generate custom paymentId
-    const paymentId = nanoid(10); // short unique string
+    const paymentId = nanoid(); // 14 chars alphanumeric
 
     // Create Razorpay order
     const razorpayOrder = await createOrder(amount, currency, paymentId);
@@ -30,6 +31,7 @@ exports.createPayment = async (req, res) => {
       razorpay_order_id: razorpayOrder.id,
       returnUrl,
       userId,
+      adminNotes,
       ipAddress: req.ip,
       verificationHistory: [{
         action: 'CREATED',
@@ -124,11 +126,52 @@ exports.markNotVerified = async (req, res) => {
   }
 };
 
-// 5) POST /api/payments/webhook
+// 5) POST /api/payments/verify
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { paymentId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const payment = await Payment.findOne({ paymentId });
+
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // Verify signature
+    const isValid = verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+
+    if (isValid) {
+      // User wants to show as NOT_VERIFIED until webhook confirms it
+      payment.status = 'NOT_VERIFIED';
+      payment.razorpay_payment_id = razorpay_payment_id;
+      payment.razorpay_signature = razorpay_signature;
+      payment.verificationHistory.push({
+        action: 'PAYMENT_SUBMITTED',
+        timestamp: new Date(),
+        details: 'Frontend reported success, waiting for webhook'
+      });
+      await payment.save();
+      return res.json({ status: 'NOT_VERIFIED', ...getPublicPaymentData(payment) });
+    } else {
+      payment.status = 'FAILED';
+      payment.verificationHistory.push({
+        action: 'VERIFICATION_FAILED',
+        timestamp: new Date(),
+        details: 'Invalid signature provided by frontend'
+      });
+      await payment.save();
+      return res.status(400).json({ error: 'Invalid signature' });
+    }
+  } catch (error) {
+    console.error('Verify payment error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// 6) POST /api/payments/webhook
 exports.handleWebhook = async (req, res) => {
   // Webhook signature verification is critical
   const signature = req.headers['x-razorpay-signature'];
-  
+
   // Need raw body for verification. 
   // We assume app.js configures express.json({ verify: (req, res, buf) => req.rawBody = buf })
   const rawBody = req.rawBody;
@@ -143,12 +186,12 @@ exports.handleWebhook = async (req, res) => {
   }
 
   const event = req.body;
-  
+
   try {
     // Match razorpay_order_id
     // event.payload.payment.entity.order_id contains the order ID
     const orderId = event.payload?.payment?.entity?.order_id;
-    
+
     if (!orderId) {
       // Not an event we care about or structure mismatch
       return res.json({ status: 'ignored' });
@@ -157,14 +200,14 @@ exports.handleWebhook = async (req, res) => {
     const payment = await Payment.findOne({ razorpay_order_id: orderId });
 
     if (!payment) {
-      console.warn(`Payment not found for orderId: ${orderId}`);
+      console.warn(`Payment not found for orderId: ${orderId} `);
       return res.json({ status: 'ignored_not_found' });
     }
 
     // Idempotency: check if this event id is already logged
     const eventId = event.id || event['x-request-id']; // Razorpay sends 'id' in body
     const isDuplicate = payment.webhookLogs.some(log => log.id === event.id);
-    
+
     if (isDuplicate) {
       return res.json({ status: 'ignored_duplicate' });
     }
@@ -173,29 +216,29 @@ exports.handleWebhook = async (req, res) => {
     payment.webhookLogs.push(event);
 
     if (event.event === 'payment.captured') {
-        const paymentEntity = event.payload.payment.entity;
-        
-        // Update payment details
-        payment.razorpay_payment_id = paymentEntity.id;
-        payment.razorpay_signature = signature; // Store the signature of the webhook that verified it
-        
-        if (payment.status !== 'VERIFIED') {
-             payment.status = 'VERIFIED';
-             payment.verificationHistory.push({
-                 action: 'VERIFIED',
-                 timestamp: new Date(),
-                 details: 'Webhook payment.captured received and verified'
-             });
-        }
+      const paymentEntity = event.payload.payment.entity;
+
+      // Update payment details
+      payment.razorpay_payment_id = paymentEntity.id;
+      payment.razorpay_signature = signature; // Store the signature of the webhook that verified it
+
+      if (payment.status !== 'VERIFIED') {
+        payment.status = 'VERIFIED';
+        payment.verificationHistory.push({
+          action: 'VERIFIED',
+          timestamp: new Date(),
+          details: 'Webhook payment.captured received and verified'
+        });
+      }
     } else if (event.event === 'payment.failed') {
-         if (payment.status !== 'VERIFIED') {
-             payment.status = 'FAILED';
-             payment.verificationHistory.push({
-                 action: 'FAILED',
-                 timestamp: new Date(),
-                 details: 'Webhook payment.failed received'
-             });
-         }
+      if (payment.status !== 'VERIFIED') {
+        payment.status = 'FAILED';
+        payment.verificationHistory.push({
+          action: 'FAILED',
+          timestamp: new Date(),
+          details: 'Webhook payment.failed received'
+        });
+      }
     }
 
     await payment.save();
@@ -208,5 +251,5 @@ exports.handleWebhook = async (req, res) => {
 };
 
 function expiresAtValid(amount) {
-    return true; // Simplified
+  return true; // Simplified
 }

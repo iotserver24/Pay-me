@@ -12,6 +12,9 @@ const PaymentPage = () => {
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
 
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [statusType, setStatusType] = useState('success'); // 'success' | 'error'
+
   useEffect(() => {
     if (id) {
       fetchPayment();
@@ -64,10 +67,10 @@ const PaymentPage = () => {
       // The prompt is slightly contradictory or implies I should expose it if needed.
       // "Public fields: ... paymentId, amount, currency, description, status..."
       // "PRIVATE (admin-only): razorpay_order_id..."
-      
+
       // However, Razorpay Standard Checkout docs say:
       // "Pass the order_id that you received in the response of the Orders API."
-      
+
       // So I MUST expose `razorpay_order_id` to the frontend for the payment to work.
       // I will update `responseFilters.js` to include `razorpay_order_id` or just pass it here.
       // The prompt lists `razorpay_order_id` under PRIVATE. This is tricky.
@@ -80,43 +83,43 @@ const PaymentPage = () => {
         // response.razorpay_payment_id
         // response.razorpay_order_id
         // response.razorpay_signature
-        
+
         try {
-          await api.post('/api/payments/mark-not-verified', { paymentId: payment.paymentId });
-          
-          // Poll for status or redirect
-          // The prompt says: "redirect to the stored returnUrl (if desired) or show a message and poll"
-          // I'll poll a few times then show success.
-          
-          let attempts = 0;
-          const maxAttempts = 10;
-          
-          const poll = setInterval(async () => {
-             attempts++;
-             try {
-               const statusRes = await api.get(`/api/payments/status/${payment.paymentId}`);
-               if (statusRes.data.status === 'VERIFIED') {
-                 clearInterval(poll);
-                 setPayment(prev => ({ ...prev, status: 'VERIFIED' }));
-                 setProcessing(false);
-                 alert('Payment Successful!');
-                 if (payment.returnUrl) {
-                    window.location.href = payment.returnUrl;
-                 }
-               } else if (attempts >= maxAttempts) {
-                 clearInterval(poll);
-                 setProcessing(false);
-                 alert('Payment verification is taking longer than usual. Please check back later.');
-               }
-             } catch (e) {
-               console.error(e);
-             }
-          }, 2000);
+          // Call backend to verify signature immediately
+          const verifyRes = await api.post('/api/payments/verify', {
+            paymentId: payment.paymentId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+          });
+
+          if (verifyRes.data.status === 'NOT_VERIFIED') {
+            setPayment(prev => ({ ...prev, status: 'NOT_VERIFIED' }));
+            setStatusType('success');
+            setStatusMessage('Payment submitted successfully! Waiting for final confirmation.');
+            setProcessing(false);
+            if (payment.returnUrl) {
+              setTimeout(() => window.location.href = payment.returnUrl, 3000);
+            }
+          } else if (verifyRes.data.status === 'VERIFIED') {
+            setPayment(prev => ({ ...prev, status: 'VERIFIED' }));
+            setStatusType('success');
+            setStatusMessage('Payment Successful!');
+            setProcessing(false);
+            if (payment.returnUrl) {
+              setTimeout(() => window.location.href = payment.returnUrl, 3000);
+            }
+          } else {
+            setProcessing(false);
+            setStatusType('error');
+            setStatusMessage('Payment verification failed. Please contact support.');
+          }
 
         } catch (err) {
           console.error(err);
           setProcessing(false);
-          alert('Payment completed but failed to update status. Please contact support.');
+          setStatusType('error');
+          setStatusMessage('Payment completed but failed to verify on server. Please contact support.');
         }
       },
       prefill: {
@@ -126,32 +129,94 @@ const PaymentPage = () => {
         address: 'Razorpay Corporate Office'
       },
       theme: {
-        color: '#3399cc'
+        color: '#0ea5e9' // Primary-500 color
       },
       modal: {
-        ondismiss: function() {
-            setProcessing(false);
+        ondismiss: function () {
+          setProcessing(false);
         }
       }
     };
 
     const rzp1 = new window.Razorpay(options);
-    rzp1.on('payment.failed', function (response){
-        alert(response.error.description);
-        setProcessing(false);
+    rzp1.on('payment.failed', function (response) {
+      setStatusType('error');
+      setStatusMessage(response.error.description);
+      setProcessing(false);
     });
     rzp1.open();
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-600">{error}</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl text-center max-w-md">
+        <p className="font-bold mb-2">Error</p>
+        <p>{error}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center pt-10 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
       <Head>
         <title>Pay - {payment ? payment.description : '...'}</title>
       </Head>
-      <PaymentCard payment={payment} onPay={handlePay} loading={processing} />
+
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-500/20 blur-[120px]" />
+        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-500">
+            PayMe
+          </h1>
+          <p className="text-gray-400 text-sm mt-2">Secure Payment Gateway</p>
+        </div>
+        <PaymentCard payment={payment} onPay={handlePay} loading={processing} />
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-500 text-xs">
+            Secured by Razorpay. Your data is encrypted.
+          </p>
+        </div>
+      </div>
+
+      {/* Custom Modal */}
+      {statusMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setStatusMessage(null)}></div>
+          <div className="bg-dark-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-2xl animate-slide-up">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto ${statusType === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+              }`}>
+              {statusType === 'success' ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              )}
+            </div>
+            <h3 className="text-xl font-bold text-white text-center mb-2">
+              {statusType === 'success' ? 'Success' : 'Error'}
+            </h3>
+            <p className="text-gray-400 text-center mb-6">
+              {statusMessage}
+            </p>
+            <button
+              onClick={() => setStatusMessage(null)}
+              className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
