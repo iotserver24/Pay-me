@@ -38,7 +38,7 @@ const createOrder = async (amount, currency, receipt) => {
 
 const verifySignature = (orderId, paymentId, signature) => {
   if (!process.env.RAZORPAY_KEY_SECRET) {
-     throw new Error('Razorpay secret missing');
+    throw new Error('Razorpay secret missing');
   }
   const text = orderId + '|' + paymentId;
   const generated_signature = crypto
@@ -64,14 +64,14 @@ const verifyWebhookSignature = (body, signature) => {
 
 // Raw body verification is usually safer for webhooks to avoid JSON parsing changes
 const verifyWebhookSignatureRaw = (rawBody, signature) => {
-   if (!process.env.RAZORPAY_KEY_SECRET) {
-    throw new Error('Razorpay secret missing');
+  if (!process.env.RAZORPAY_WEBHOOK_SECRET) {
+    throw new Error('Razorpay webhook secret missing');
   }
   const generated_signature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
     .update(rawBody)
     .digest('hex');
-    
+
   return generated_signature === signature;
 }
 
