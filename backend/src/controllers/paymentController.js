@@ -141,6 +141,11 @@ exports.verifyPayment = async (req, res) => {
     console.log(`[VerifyPayment] PaymentId: ${paymentId}, OrderId: ${razorpay_order_id}, Valid: ${isValid}`);
 
     if (isValid) {
+      // If already verified by webhook, don't downgrade status
+      if (payment.status === 'VERIFIED') {
+        return res.json({ status: 'VERIFIED', ...getPublicPaymentData(payment) });
+      }
+
       // User wants to show as NOT_VERIFIED until webhook confirms it
       payment.status = 'NOT_VERIFIED';
       payment.razorpay_payment_id = razorpay_payment_id;
@@ -210,10 +215,27 @@ exports.handleWebhook = async (req, res) => {
     console.log(`[Webhook] Found payment: ${payment.paymentId} (Current Status: ${payment.status})`);
 
     // Idempotency: check if this event id is already logged
-    const eventId = event.id || event['x-request-id']; // Razorpay sends 'id' in body
-    const isDuplicate = payment.webhookLogs.some(log => log.id === event.id);
+    // Razorpay sends 'x-razorpay-event-id' in headers, or 'id' in body
+    const eventId = req.headers['x-razorpay-event-id'] || event.id;
+
+    // If we can't find an ID, we fallback to checking event type + payment ID to avoid processing same event twice
+    // But since we are inside a specific payment context, we just check if we have a log with this event ID (if exists)
+    // or if we have a log with the same event type (e.g. 'payment.captured')
+
+    let isDuplicate = false;
+    if (eventId) {
+      isDuplicate = payment.webhookLogs.some(log => log.id === eventId || log.event_id === eventId);
+      // Inject id into event object for storage if missing
+      if (!event.id) event.id = eventId;
+    } else {
+      // Fallback: Check if we already have this event type logged. 
+      // This prevents re-processing 'payment.captured' if we already have it.
+      // Be careful: 'payment.failed' might happen multiple times? Usually terminal states happen once.
+      isDuplicate = payment.webhookLogs.some(log => log.event === event.event);
+    }
 
     if (isDuplicate) {
+      console.log(`[Webhook] Duplicate event ${event.event} (ID: ${eventId || 'unknown'}) - Ignored`);
       return res.json({ status: 'ignored_duplicate' });
     }
 
