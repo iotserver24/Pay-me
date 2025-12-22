@@ -5,6 +5,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+// Trust proxy for cloud deployments (fixes express-rate-limit behind reverse proxy)
+app.set('trust proxy', 1);
+
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : '*';
