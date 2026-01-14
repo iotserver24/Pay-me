@@ -1,0 +1,165 @@
+SELF-TEST DIAGNOSTIC - VM ENVIRONMENT LEAK CHECK
+Date: Wed Jan 14 06:44:12 UTC 2026
+PWD: /home/engine/project
+
+=== 1. LIVE EXPORTED ENVIRONMENT VARIABLES ===
+(this shows what the current shell actually sees)
+declare -x BUN_INSTALL="/home/engine/.bun"
+declare -x DEBIAN_FRONTEND="noninteractive"
+declare -x HOME="/home/engine"
+declare -x HOSTNAME="engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-8c57d7fdd-fzb4t"
+declare -x KUBERNETES_PORT="tcp://10.20.0.1:443"
+declare -x KUBERNETES_PORT_443_TCP="tcp://10.20.0.1:443"
+declare -x KUBERNETES_PORT_443_TCP_ADDR="10.20.0.1"
+declare -x KUBERNETES_PORT_443_TCP_PORT="443"
+declare -x KUBERNETES_PORT_443_TCP_PROTO="tcp"
+declare -x KUBERNETES_SERVICE_HOST="10.20.0.1"
+declare -x KUBERNETES_SERVICE_PORT="443"
+declare -x KUBERNETES_SERVICE_PORT_HTTPS="443"
+declare -x LC_CTYPE="C.UTF-8"
+declare -x LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:/usr/local/lib:"
+declare -x NF_CPU_RESOURCES="2"
+declare -x NF_DISCOVERY_SERVICE="engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-headless"
+declare -x NF_EPHEMERAL_STORAGE="10240"
+declare -x NF_EXTERNAL_DOCKER_IMAGE="engine/container:new-agreement-223"
+declare -x NF_EXTERNAL_DOCKER_PRIVATE="true"
+declare -x NF_EXTERNAL_DOCKER_PROVIDER="custom"
+declare -x NF_HOSTS="p01--engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec--4h4cpv6b2xy4.code.run,7c1b7dc0-0c2c-4f44-8928-d33d260af0ec.enginelabs.link"
+declare -x NF_HOSTS_CUSTOM="7c1b7dc0-0c2c-4f44-8928-d33d260af0ec.enginelabs.link"
+declare -x NF_NAMESPACE="ns-4h4cpv6b2xy4"
+declare -x NF_OBJECT_ID="engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec"
+declare -x NF_OBJECT_TYPE="service"
+declare -x NF_PLAN_ID="nf-compute-200-4"
+declare -x NF_POD_ID="6e9dab21-d548-4737-8354-ace496659c06"
+declare -x NF_POD_IP="10.16.46.163"
+declare -x NF_POD_NAME="engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-8c57d7fdd-fzb4t"
+declare -x NF_PROJECT_ID="iotserver24"
+declare -x NF_RAM_RESOURCES="4096"
+declare -x NF_REGION="us-central"
+declare -x NF_RESOURCE_ID="engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec"
+declare -x NVM_BIN="/home/engine/.nvm/versions/node/v20.19.6/bin"
+declare -x NVM_CD_FLAGS=""
+declare -x NVM_DIR="/home/engine/.nvm"
+declare -x NVM_INC="/home/engine/.nvm/versions/node/v20.19.6/include/node"
+declare -x OLDPWD="/home/engine/project"
+declare -x OMP_NUM_THREADS="1"
+declare -x PATH="/usr/local/share/bun/bin:/usr/local/share/bun/bin:/home/engine/.local/bin:/home/engine/.local/bin/:/home/engine/.nvm/versions/node/v20.19.6/bin:/home/engine/.npm-global/bin:/usr/local/share/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+declare -x PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/pkgconfig:"
+declare -x PWD="/home/engine/project"
+declare -x PYTHON="/usr/bin/python3"
+declare -x SHELL="/bin/bash"
+declare -x SHLVL="2"
+declare -x SUPERVISOR_ENABLED="1"
+declare -x SUPERVISOR_GROUP_NAME="terminal"
+declare -x SUPERVISOR_PROCESS_NAME="terminal"
+declare -x SUPERVISOR_SERVER_URL="unix:///home/engine/app/supervisor/supervisor.sock"
+declare -x TERM="xterm-256color"
+declare -x npm_config_python="/usr/bin/python3"
+
+=== 2. FULL printenv OUTPUT ===
+NF_EXTERNAL_DOCKER_PRIVATE=true
+SHELL=/bin/bash
+KUBERNETES_SERVICE_PORT_HTTPS=443
+SUPERVISOR_GROUP_NAME=terminal
+NF_NAMESPACE=ns-4h4cpv6b2xy4
+NF_PROJECT_ID=iotserver24
+KUBERNETES_SERVICE_PORT=443
+NVM_INC=/home/engine/.nvm/versions/node/v20.19.6/include/node
+PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/pkgconfig:
+SUPERVISOR_SERVER_URL=unix:///home/engine/app/supervisor/supervisor.sock
+HOSTNAME=engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-8c57d7fdd-fzb4t
+NF_RESOURCE_ID=engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec
+NF_DISCOVERY_SERVICE=engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-headless
+PWD=/home/engine/project
+NF_EXTERNAL_DOCKER_PROVIDER=custom
+NF_RAM_RESOURCES=4096
+HOME=/home/engine
+KUBERNETES_PORT_443_TCP=tcp://10.20.0.1:443
+NF_OBJECT_ID=engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec
+NF_POD_ID=6e9dab21-d548-4737-8354-ace496659c06
+NF_POD_IP=10.16.46.163
+NF_HOSTS=p01--engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec--4h4cpv6b2xy4.code.run,7c1b7dc0-0c2c-4f44-8928-d33d260af0ec.enginelabs.link
+NF_REGION=us-central
+NVM_DIR=/home/engine/.nvm
+TERM=xterm-256color
+NF_CPU_RESOURCES=2
+NF_PLAN_ID=nf-compute-200-4
+PYTHON=/usr/bin/python3
+NF_HOSTS_CUSTOM=7c1b7dc0-0c2c-4f44-8928-d33d260af0ec.enginelabs.link
+SHLVL=2
+NVM_CD_FLAGS=
+NF_POD_NAME=engine-7c1b7dc0-0c2c-4f44-8928-d33d260af0ec-8c57d7fdd-fzb4t
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_ADDR=10.20.0.1
+LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/local/lib:
+LC_CTYPE=C.UTF-8
+NF_EXTERNAL_DOCKER_IMAGE=engine/container:new-agreement-223
+OMP_NUM_THREADS=1
+BUN_INSTALL=/home/engine/.bun
+KUBERNETES_SERVICE_HOST=10.20.0.1
+SUPERVISOR_PROCESS_NAME=terminal
+KUBERNETES_PORT=tcp://10.20.0.1:443
+KUBERNETES_PORT_443_TCP_PORT=443
+NF_OBJECT_TYPE=service
+PATH=/usr/local/share/bun/bin:/usr/local/share/bun/bin:/home/engine/.local/bin:/home/engine/.local/bin/:/home/engine/.nvm/versions/node/v20.19.6/bin:/home/engine/.npm-global/bin:/usr/local/share/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+npm_config_python=/usr/bin/python3
+NVM_BIN=/home/engine/.nvm/versions/node/v20.19.6/bin
+NF_EPHEMERAL_STORAGE=10240
+DEBIAN_FRONTEND=noninteractive
+OLDPWD=/home/engine/project
+SUPERVISOR_ENABLED=1
+_=/usr/bin/printenv
+
+=== 3. COMMON PERMANENT CONFIG FILES (potential source of exported vars) ===
+>>> /home/engine/.bashrc exists - first 30 lines + any KEY/TOKEN lines:
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+. "$HOME/.local/bin/env"
+(no matches)
+
+>>> /home/engine/.bash_profile exists - first 30 lines + any KEY/TOKEN lines:
+[[ -r ~/.bashrc ]] && . ~/.bashrc
+
+# NVM initialization
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# Bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="/usr/local/share/bun/bin:$PATH"
+[ -s "/home/engine/.bun/_bun" ] && source "/home/engine/.bun/_bun"
+
+# Set default shell
+export SHELL=/bin/bash
+
+export DEBIAN_FRONTEND=noninteractive
+
+. "$HOME/.local/bin/env"
+(no matches)
+
+>>> /home/engine/.profile exists - first 30 lines + any KEY/TOKEN lines:
+
+. "$HOME/.local/bin/env"
+(no matches)
+
+>>> /home/engine/.zshrc exists - first 30 lines + any KEY/TOKEN lines:
+
+. "$HOME/.local/bin/env"
+(no matches)
+
+/home/engine/.zprofile → not present
+/home/engine/.zshenv → not present
+/home/engine/.env → not present
+.env → not present
+/home/engine/.config/environment.d/* → not present
+>>> /etc/environment exists - first 30 lines + any KEY/TOKEN lines:
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+CI=true
+(no matches)
+
+
+=== 4. GIT STATUS & ATTEMPT COMMIT FOR VERIFICATION ===
+?? ai_test.txt
